@@ -1,0 +1,91 @@
+<Sysmon schemaversion="2.01">
+  <!-- Capture all hashes -->
+  <HashAlgorithms>sha1</HashAlgorithms>
+  <EventFiltering>
+    <!-- Log all drivers except if the signature -->
+    <!-- contains Microsoft or Windows -->
+    <DriverLoad onmatch="exclude">
+      <Signature condition="contains">microsoft</Signature>
+      <Signature condition="contains">windows</Signature>
+      <Signature condition="contains">mcafee</Signature>
+      <Signature condition="contains">DISPLAYLINK</Signature>
+    </DriverLoad>
+	<NetworkConnect onmatch="exclude">
+	  <Image condition="contains">nxlog</Image>
+      <Image condition="contains">chrome</Image>
+      <Image condition="contains">ntpd.exe</Image>
+      <Image condition="contains">ossec-agent.exe</Image>
+      <Image condition="contains">Solarwinds</Image>
+      <Image condition="contains">KACE</Image>
+      <Image condition="contains">C:\Program Files\Microsoft Office\</Image>
+      <Image condition="contains">McAfee</Image>
+	  <Image condition="contains">C:\Program Files\McAfee</Image>
+	  <Image condition="contains">C:\Program Files (x86)\McAfee</Image>
+      <Image condition="contains">VMware</Image>
+      <Image>C:\Windows\System32\conhost.exe</Image>
+      <Image>C:\Windows\System32\svchost.exe</Image>
+      <Image>C:\Windows\System32\lsass.exe</Image>
+      <Image>C:\Windows\System32\dns.exe</Image>
+      <Image>C:\Windows\System32\SearchFilterHost.exe</Image>
+      <Image>C:\Windows\System32\SearchProtocolHost.exe</Image>
+      <Image>C:\Windows\System32\backgroundTaskHost.exe</Image>
+      <Image>C:\Windows\System32\RuntimeBroker.exe</Image>
+      <Image>C:\Windows\System32\WWAHost.exe</Image>
+	  <Image>C:\Windows\System32\dllhost.exe</Image>
+      <Image condition="contains">C:\Windows\Microsoft.NET</Image>
+      <Image condition="contains">C:\Windows\SysWOW64</Image>
+    </NetworkConnect>
+    <ProcessCreate onmatch="exclude">
+      <Image condition="contains">nxlog</Image>
+      <Image condition="contains">chrome</Image>
+      <Image condition="contains">ntpd.exe</Image>
+      <Image condition="contains">ossec-agent.exe</Image>
+      <Image condition="contains">Solarwinds</Image>
+      <Image condition="contains">KACE</Image>
+      <Image condition="contains">C:\Program Files\Microsoft Office\</Image>
+      <Image condition="contains">McAfee</Image>
+	  <Image condition="contains">C:\Program Files\McAfee</Image>
+	  <Image condition="contains">C:\Program Files (x86)\McAfee</Image>
+      <Image condition="contains">VMware</Image>
+      <Image>C:\Windows\System32\conhost.exe</Image>
+      <Image>C:\Windows\System32\svchost.exe</Image>
+      <Image>C:\Windows\System32\lsass.exe</Image>
+      <Image>C:\Windows\System32\dns.exe</Image>
+      <Image>C:\Windows\System32\SearchFilterHost.exe</Image>
+      <Image>C:\Windows\System32\SearchProtocolHost.exe</Image>
+      <Image>C:\Windows\System32\backgroundTaskHost.exe</Image>
+      <Image>C:\Windows\System32\RuntimeBroker.exe</Image>
+      <Image>C:\Windows\System32\WWAHost.exe</Image>
+	  <Image>C:\Windows\System32\dllhost.exe</Image>
+      <Image condition="contains">C:\Windows\Microsoft.NET</Image>
+      <Image condition="contains">C:\Windows\SysWOW64</Image>
+      <Image>System</Image>
+    </ProcessCreate>
+    <ProcessTerminate onmatch="exclude">
+      <Image condition="contains">nxlog</Image>
+      <Image condition="contains">chrome</Image>
+      <Image condition="contains">ntpd.exe</Image>
+      <Image condition="contains">ossec-agent.exe</Image>
+      <Image condition="contains">Solarwinds</Image>
+      <Image condition="contains">KACE</Image>
+      <Image condition="contains">C:\Program Files\Microsoft Office\</Image>
+      <Image condition="contains">McAfee</Image>
+      <Image condition="contains">C:\Program Files\McAfee</Image>
+      <Image condition="contains">C:\Program Files (x86)\McAfee</Image>
+      <Image condition="contains">VMware</Image>
+      <Image>C:\Windows\System32\conhost.exe</Image>
+      <Image>C:\Windows\System32\svchost.exe</Image>
+      <Image>C:\Windows\System32\lsass.exe</Image>
+      <Image>C:\Windows\System32\dns.exe</Image>
+      <Image>C:\Windows\System32\SearchFilterHost.exe</Image>
+      <Image>C:\Windows\System32\SearchProtocolHost.exe</Image>
+      <Image>C:\Windows\System32\backgroundTaskHost.exe</Image>
+      <Image>C:\Windows\System32\RuntimeBroker.exe</Image>
+      <Image>C:\Windows\System32\WWAHost.exe</Image>
+	  <Image>C:\Windows\System32\dllhost.exe</Image>
+      <Image condition="contains">C:\Windows\Microsoft.NET</Image>
+      <Image condition="contains">C:\Windows\SysWOW64</Image>
+      <Image>System</Image>
+    </ProcessTerminate>
+  </EventFiltering>
+</Sysmon>
