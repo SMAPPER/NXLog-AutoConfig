@@ -18,7 +18,7 @@ git clone https://github.com/svch0stz/NXLog-AutoConfig
 ```
 Param (
   [string]$Version = "1.0",
-  [string]$WebHost = "webhost.domain.com" # << REPLACE HERE
+  [string]$WebHost = "webhost.domain.com", # << REPLACE HERE
   [string]$MSILocation = "http://$WebHost/NXLog-AutoConfig/nxlog.msi",
   [string]$script:webFileLocation = "http://$WebHost/NXLog-AutoConfig",
   [string]$script:logcollector = "logger.domain.com", # << REPLACE HERE
