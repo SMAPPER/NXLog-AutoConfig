@@ -81,7 +81,7 @@ NXLog-AutoConfig/
 
 Run the following on the target host in PowerShell to start sending logs:
 ```
-IEX (New-Object Net.WebClient).DownloadString('http://webserver.domain.com/nxlog/nxlog_master.ps1');
+IEX (New-Object Net.WebClient).DownloadString('http://webserver.domain.com/NXLog-AutoConfig/nxlog_master.ps1');
 ```
 
 ## Notes and Tips
