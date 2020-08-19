@@ -1,2 +1,4 @@
 nxlog.msi
-binaries/*
+binaries/*.exe
+binaries/*.msi
+binaries/*.xml
