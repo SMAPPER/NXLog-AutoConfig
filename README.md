@@ -93,6 +93,7 @@ IEX (New-Object Net.WebClient).DownloadString('http://webserver.domain.com/NXLog
 - If you update a module, you will need to run sha1deep and update the hashfile list - `bin.txt` for the contents of `binaries/` and `modules.txt` for the contents of `modules/`.
 
 #### TODO
+- ~~Create auto download script for required executables~~
 - Set Windows auditing policies before sending Windows events
 - Work on other modules
 - Update hash files automatically (bin.txt and modules.txt)
