@@ -81,7 +81,7 @@ NXLog-AutoConfig/
 
 Run the following on the target host in PowerShell to start sending logs:
 ```
-IEX (New-Object Net.WebClient).DownloadString('http://webserver.domain.com/nxlog/nxlog_master.ps1');
+IEX (New-Object Net.WebClient).DownloadString('http://webserver.domain.com/NXLog-AutoConfig/nxlog_master.ps1');
 ```
 
 ## Notes and Tips
@@ -92,7 +92,12 @@ IEX (New-Object Net.WebClient).DownloadString('http://webserver.domain.com/nxlog
 
 - If you update a module, you will need to run sha1deep and update the hashfile list - `bin.txt` for the contents of `binaries/` and `modules.txt` for the contents of `modules/`.
 
+- To uninstall Nxlog `MsiExec.exe /X{95710AD9-183D-40D9-A69F-B69C8BA13022} REMOVE_ALL_FILES=True /qn`
+
+- To uninstall Sysmon `sysmon64.exe -u`
+
 #### TODO
+- ~~Create auto download script for required executables~~
 - Set Windows auditing policies before sending Windows events
 - Work on other modules
 - Update hash files automatically (bin.txt and modules.txt)
