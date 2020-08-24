@@ -4,18 +4,18 @@ if($script:architecture -eq "AMD64"){
     Write-Host "Running Sysmon Module 64 bit"
     #if service exists - update config
     if(Get-Service -Name Sysmon* -ErrorAction SilentlyContinue){
-            C:\Temp\nxlog\bin\sysmon64.exe –accepteula –c C:\Temp\nxlog\bin\sysmon.xml
+            Start-Process -FilePath "$script:binPath\sysmon64.exe" -ArgumentList @('-accepteula','-c',"$script:binPath\sysmon.xml") -PassThru -NoNewWindow -ErrorAction Stop | Wait-Process
     }
     else { # if no service exists - install sysmon
-            C:\Temp\nxlog\bin\sysmon64.exe –accepteula –i C:\Temp\nxlog\bin\sysmon.xml
+            Start-Process -FilePath "$script:binPath\sysmon64.exe" -ArgumentList @('-accepteula','-i',"$script:binPath\sysmon.xml") -PassThru -NoNewWindow -ErrorAction Stop | Wait-Process
     }
 }else {
     Write-Host "Running Sysmon Module 32 bit"
     if(Get-Service -Name Sysmon* -ErrorAction SilentlyContinue){
-            C:\Temp\nxlog\bin\sysmon.exe –accepteula –c C:\Temp\nxlog\bin\sysmon.xml
+            Start-Process -FilePath "$script:binPath\sysmon.exe" -ArgumentList @('-accepteula','-c',"$script:binPath\sysmon.xml") -PassThru -NoNewWindow -ErrorAction Stop | Wait-Process
     }
     else { # if no service exists - install sysmon
-            C:\Temp\nxlog\bin\sysmon.exe –accepteula –i C:\Temp\nxlog\bin\sysmon.xml
+            Start-Process -FilePath "$script:binPath\sysmon.exe" -ArgumentList @('-accepteula','-i',"$script:binPath\sysmon.xml") -PassThru -NoNewWindow -ErrorAction Stop | Wait-Process
     }
 }
  

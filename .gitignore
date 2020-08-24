@@ -1,2 +1,5 @@
 nxlog.msi
-binaries/*
+binaries/*.exe
+binaries/*.msi
+binaries/*.xml
+binaries/hashdeep.zip
