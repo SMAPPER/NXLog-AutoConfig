@@ -1,9 +1,4 @@
-﻿# FileName: nxlog_master.ps1
-#
-# Last Modified 5/10/2016
-# Created by: Justin Henderson
-# Email: jhenderson@tekrefresh.com
-#
+# FileName: nxlog_master.ps1
 
 # This script is used to install, upgrade, and maintain nxlog config files
 
@@ -11,11 +6,12 @@
 
 # Define the parameters of this script.
 Param(
-  [string]$Version = "", 
-  [string]$MSILocation = "http://someserver/nxlog/nxlog-2.9.1427.msi",
-  [string]$script:webFileLocation = "http://someserver/nxlog",
-  [string]$script:logstashHost = "someserver",
-  [string]$script:scriptPath = "C:\scripts\nxlog"
+  [string]$Version = "1.0",
+  [string]$WebHost = "wef.windomain.local:8080", # << REPLACE HERE
+  [string]$MSILocation = "http://$WebHost/NXLog-AutoConfig/nxlog.msi",
+  [string]$script:webFileLocation = "http://$WebHost/NXLog-AutoConfig",
+  [string]$script:logcollector = "192.168.38.105", # << REPLACE HERE
+  [string]$script:scriptPath = "C:\Temp\nxlog"
 )
 
 # Set variables - DO NOT CHANGE
@@ -49,12 +45,7 @@ function binaryDownload($filePath){
         $WebClient.DownloadFile("$script:webFileLocation/binaries/sha1deep.exe","$script:binPath\sha1deep.exe")
     }
     $content = Get-Content -Path $filePath
-    $licenseIssueStart = Select-String $filePath -pattern "license_issue_start" | Select -property LineNumber
-    $licenseIssueStart = $licenseIssueStart.LineNumber
-    $licenseIssueEnd = Select-String $filePath -pattern "license_issue_end" | Select -property LineNumber
-    $licenseIssueEnd = $licenseIssueEnd.LineNumber
-    if(($licenseIssueEnd -1) -gt $licenseIssueStart){
-        (Get-Content -Path $filePath)[$licenseIssueStart .. ($licenseIssueEnd - 2)] | ForEach-Object {
+        (Get-Content -Path $filePath) | ForEach-Object {
             $array = $_.Split(',')
             $exe = $array[0]
             $hash = $array[1]
@@ -74,64 +65,6 @@ function binaryDownload($filePath){
                 $WebClient = New-Object System.Net.WebClient
                 $WebClient.DownloadFile("$script:webFileLocation/binaries/$exe","$script:binPath\$exe")
             }
-        }
-    }
-    if($script:architecture -ne "AMD64"){
-        $32Start = Select-String $filePath -pattern "x86_start" | Select -Property LineNumber
-        $32Start = $32Start.LineNumber
-        $32End = Select-String $filePath -pattern "x86_end" | Select -Property LineNumber
-        $32End = $32End.LineNumber
-        if(($32End -1) -gt $32Start){
-            (Get-Content -Path $filePath)[$32Start .. ($32End - 2)] | ForEach-Object {
-                $array = $_.Split(',')
-                $exe = $array[0]
-                $hash = $array[1]
-                if(!(Test-Path -Path "$script:binPath\$exe")){
-                    Write-Host "Attempting to download $exe"
-                    $WebClient = New-Object System.Net.WebClient
-                    $WebClient.DownloadFile("$script:webFileLocation/binaries/$exe","$script:binPath\$exe")
-                }
-                if($script:architecture -eq "AMD64"){
-                    $binaryHash = & "$script:binPath\sha1deep64.exe" "$script:binPath\$exe"
-                } else {
-                    $binaryHash = & "$script:binPath\sha1deep.exe" "$script:binPath\$exe"
-                }
-                $binaryHash = $binaryHash.substring(0,$binaryHash.indexof(" "))
-                if($binaryHash -ne $hash){
-                    Write-Host "Binary updated. Downloading $exe"
-                    $WebClient = New-Object System.Net.WebClient
-                    $WebClient.DownloadFile("$script:webFileLocation/binaries/$exe","$script:binPath\$exe")
-                }
-            }
-        }
-    } else {
-        $64Start = Select-String $filePath -pattern "x64_start" | Select -Property LineNumber
-        $64Start = $64Start.LineNumber
-        $64End = Select-String $filePath -pattern "x64_end" | Select -Property LineNumber
-        $64End = $64End.LineNumber
-        if(($64End -1) -gt $64Start){
-            (Get-Content -Path $filePath)[$64Start .. ($64End - 2)] | ForEach-Object {
-                $array = $_.Split(',')
-                $exe = $array[0]
-                $hash = $array[1]
-                if(!(Test-Path -Path "$script:binPath\$exe")){
-                    Write-Host "Attempting to download $exe"
-                    $WebClient = New-Object System.Net.WebClient
-                    $WebClient.DownloadFile("$script:webFileLocation/binaries/$exe","$script:binPath\$exe")
-                }
-                if($script:architecture -eq "AMD64"){
-                    $binaryHash = & "$script:binPath\sha1deep64.exe" "$script:binPath\$exe"
-                } else {
-                    $binaryHash = & "$script:binPath\sha1deep.exe" "$script:binPath\$exe"
-                }
-                $binaryHash = $binaryHash.substring(0,$binaryHash.indexof(" "))
-                if($binaryHash -ne $hash){
-                    Write-Host "Binary updated. Downloading $exe"
-                    $WebClient = New-Object System.Net.WebClient
-                    $WebClient.DownloadFile("$script:webFileLocation/binaries/$exe","$script:binPath\$exe")
-                }
-            }
-        }
     }
 }
 
@@ -153,7 +86,7 @@ function moduleDownload($filePath){
         }
         $moduleHash = $moduleHash.substring(0,$moduleHash.indexof(" "))
         if($moduleHash -ne $hash){
-            Write-Host "module updated. Downloading $module"
+            Write-Host "Module updated. Downloading $module"
             $WebClient = New-Object System.Net.WebClient
             $WebClient.DownloadFile("$script:webFileLocation/modules/$module","$script:modulePath\$module")
         }
@@ -207,61 +140,82 @@ if($script:architecture -eq "AMD64"){
     }
 }
 
-# Store the base configuration in $script:conf variable which will be written out to a temporary file for hash check.
-
-$script:conf = "
-
-Panic Soft
+$script:conf = "Panic Soft
 #NoFreeOnExit TRUE
-
 "
 
+#Store the base configuration in $script:conf variable which will be written out to a temporary file for hash check.
 if($script:architecture -eq "x86"){
     $nxlogpath = "C:\Program Files\nxlog"
     $script:conf += "define ROOT C:\Program Files\nxlog"
 } else {
-    $nxlogpath = "C:\Program Files (x86)\nxlog"
-    $script:conf += "define ROOT C:\Program Files (x86)\nxlog"
+   $nxlogpath = "C:\Program Files (x86)\nxlog"
+   $script:conf += "define ROOT C:\Program Files (x86)\nxlog"
 }
+
+
 
 $script:conf += "
 
+ModuleDir %ROOT%\modules
+CacheDir  %ROOT%\data
+SpoolDir  %ROOT%\data
+
 define CERTDIR %ROOT%\cert
 define CONFDIR %ROOT%\conf
+
+# Note that these two lines define constants only; the log file location
+# is ultimately set by the `LogFile` directive (see below). The
+# `MYLOGFILE` define is also used to rotate the log file automatically
+# (see the `_fileop` block).
 define LOGDIR %ROOT%\data
+define MYLOGFILE %LOGDIR%\nxlog.log
 
-LogLevel INFO
-Logfile %LOGDIR%\nxlog.log
-
-SuppressRepeatingLogs TRUE
-
-moduledir %ROOT%\modules
-CacheDir %ROOT%\data
-Pidfile %ROOT%\data\nxlog.pid
-SpoolDir %ROOT%\data
+# By default, `LogFile %MYLOGFILE%` is set in log4ensics.conf. This
+# allows the log file location to be modified via NXLog Manager. If you
+# are not using NXLog Manager, you can instead set `LogFile` below and
+# disable the `include` line.
+#LogFile %MYLOGFILE%
+#include %CONFDIR%\log4ensics.conf
 
 <Extension _syslog>
-    module      xm_syslog
+    Module  xm_syslog
 </Extension>
 
-<Extension _charconv>
-    module      xm_charconv
-    AutodetectCharsets iso8859-2, utf-8, utf-16, utf-32
+<Extension _json>
+    Module  xm_json
 </Extension>
 
-<Extension _exec>
-    module      xm_exec
-</Extension>
-
-<Extension json>
-    module xm_json
-</Extension>
-
+# This block rotates `%MYLOGFILE%` on a schedule. Note that if `LogFile`
+# is changed in log4ensics.conf via NXLog Manager, rotation of the new
+# file should also be configured there.
 <Extension _fileop>
-    module      xm_fileop
+    Module  xm_fileop
+
+    # Check the size of our log file hourly, rotate if larger than 5MB
+    <Schedule>
+        Every   1 hour
+        <Exec>
+            if ( file_exists('%MYLOGFILE%') and
+                 (file_size('%MYLOGFILE%') >= 5M) )
+            {
+                 file_cycle('%MYLOGFILE%', 8);
+            }
+        </Exec>
+    </Schedule>
+
+    # Rotate our log file every week on Sunday at midnight
+    <Schedule>
+        When    @weekly
+        Exec    if file_exists('%MYLOGFILE%') file_cycle('%MYLOGFILE%', 8);
+    </Schedule>
 </Extension>
 
-#include %CONFDIR%\log4ensics.conf
+<Output collector>
+    Module  om_tcp
+    host    $script:logcollector
+    port    514
+</Output>
 
 "
 

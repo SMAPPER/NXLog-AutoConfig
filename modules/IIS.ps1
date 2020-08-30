@@ -11,7 +11,9 @@
 # To do so open a log typically located at C:\inetpub\logs\logfiles\ and look at
 # the Fields line at the top of the file
 if(Get-Service -Name W3SVC -ErrorAction SilentlyContinue){
-    $fields = "Date,Time,ServerIP,Method,UriStem,UriQuery,ServerPort,UserName,ClientIP,UserAgent,Referer,Host,HttpStatus,HttpSubStatus,Win32Status,TimeTaken"
+    Write-Host "Running IIS Module - Detected Web Server"
+    #$fields = "Date,Time,ServerIP,Method,UriStem,UriQuery,ServerPort,UserName,ClientIP,UserAgent,Referer,Host,HttpStatus,HttpSubStatus,Win32Status,TimeTaken"
+    $fields = "Date,Time,ServerIP,Method,UriStem,UriQuery,ServerPort,UserName,ClientIP,UserAgent,Referer,HttpStatus,HttpSubStatus,Win32Status,TimeTaken"
 
     # This section breaks up the $fields listed above and generates the NXLog section required to collect the fields correctly
     $fields_array = $fields.Split(",")
@@ -52,55 +54,53 @@ if(Get-Service -Name W3SVC -ErrorAction SilentlyContinue){
     }
     if($IISVersion | Select-String -Pattern "IIS"){
         if ($script:conf | Select-String -Pattern "Extension w3c"){
-            Write-Host "w3c extension already exists"
+            Write-Host "More than one w3c extension Detected"
         } else {
             $script:conf += '
-
-    <Extension w3c>
+<Extension w3c>'
+$script:conf += '
     Module xm_csv
-    '
-    $script:conf += $nxlogFields
-    $script:conf += '
-    '
-    $script:conf += $nxlogFieldTypes
-    $script:conf += '
+'
+$script:conf += $nxlogFields
+$script:conf += '
+'
+$script:conf += $nxlogFieldTypes
+$script:conf += '
     Delimiter " "
-    </Extension>
-
-    <Output iis_out>
-        Module	om_tcp
-        Host		'
-        $script:conf += $script:logstashHost
-        $script:conf += '
-        Port        7001
-    </Output>
-    '
+    UndefValue  -'
+$script:conf +="
+</Extension>
+"
         }
-
         If ($IISVersion -match "IIS 6.0") {
             Write-Host "Running version IIS 6.0"
             Get-ChildItem C:\WINDOWS\system32\LogFiles -ErrorAction SilentlyContinue |  Where-Object {$_.Name -match "W3SVC"} | ForEach-Object { 
                 $SiteID = $_.Name.Replace("W3SVC","") -creplace '[^0-9]', ""
                 $site = "W3SVC" + $SiteID
-                $script:conf +='    
-            <Input ' + $site + '>
-            Module    im_file
-    	    File	"C:\\windows\\system32\\logfiles\\W3SVC' + $SiteID + '\\ex*""
-            SavePos  TRUE
-     
-            Exec if $raw_event =~ /^#/ drop();				\
-               else							\
-               {							\
-                    w3c->parse_csv();					\
-                    $EventTime = parsedate($date + " " + $time);	\
-                    $raw_event = to_json();				\
-               }
-        </Input>
-
-        <Route ' + $site + '>
-    	    Path		' + $site + ' => iis_out
-        </Route>
-        '
+                $script:conf += "<Input $site>
+"
+                $script:conf += "Module    im_file
+"
+    $script:conf += 'File	"C:\\inetpub\\logs\\logfiles\\W3SVC' + $SiteID + '\\u_ex*"'
+    $script:conf += '
+    <Exec>
+        if $raw_event =~ /^#/ drop();
+        else
+        {
+                    w3c->parse_csv();
+                    $EventTime = parsedate($date + " " + $time);
+                    $raw_event = to_json();
+         }
+    </Exec>'
+$script:conf += "
+</Input>
+"
+$script:conf += "<Route $site>
+"
+$script:conf += "  Path $site => collector
+"
+$script:conf += "</Route>
+"
             }
         }
         If ($IISVersion -match "IIS 7.5" -Or $IISVersion -match "IIS 7.0" -Or $IISVersion -match "IIS 8.5") {
@@ -117,25 +117,31 @@ if(Get-Service -Name W3SVC -ErrorAction SilentlyContinue){
             Get-ChildItem C:\inetpub\logs\LogFiles -ErrorAction SilentlyContinue |  Where-Object {$_.Name -match "W3SVC"} | ForEach-Object { 
                 $SiteID = $_.Name.Replace("W3SVC","") -creplace '[^0-9]', ""
                 $site = "W3SVC" + $SiteID
-                $script:conf += '    
-    <Input ' + $site + '>
-    Module    im_file
-    File	"C:\\inetpub\\logs\\logfiles\\W3SVC' + $SiteID + '\\u_ex*""
-    SavePos  TRUE
- 
-    Exec if $raw_event =~ /^#/ drop();				\
-       else							\
-       {							\
-        w3c->parse_csv();					\
-        $EventTime = parsedate($date + " " + $time);	\
-        $raw_event = to_json();				\
-       }
-    </Input>
-
-    <Route ' + $site + '>
-	    Path		' + $site + ' => iis_out
-    </Route>
-    '
+                $script:conf += "<Input $site>
+"
+                $script:conf += "    Module    im_file
+"
+    $script:conf += '    File    "C:\\inetpub\\logs\\logfiles\\W3SVC' + $SiteID + '\\u_ex*"'
+    $script:conf += '
+    SavePos TRUE
+    <Exec>
+        if $raw_event =~ /^#/ drop();
+        else
+        {
+                    w3c->parse_csv();
+                    $EventTime = parsedate($date + " " + $time);
+                    $raw_event = to_json();
+        }
+    </Exec>'
+$script:conf += "
+</Input>
+"
+$script:conf += "<Route $site>
+"
+$script:conf += "  Path   $site => collector
+"
+$script:conf += "</Route>
+"
             }
         }
     }

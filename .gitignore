@@ -1,0 +1,5 @@
+nxlog.msi
+binaries/*.exe
+binaries/*.msi
+binaries/*.xml
+binaries/hashdeep.zip
